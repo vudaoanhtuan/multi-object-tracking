@@ -1,5 +1,5 @@
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtGui import QIcon, QKeyEvent, QPixmap
 from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -40,7 +40,7 @@ class ObjectIdDialog(QDialog):
             item = self._create_colored_item(oid, f"Existing ID: {oid}")
             self._list_widget.addItem(item)
             if suggested_id == oid:
-                item.setSelected(True)
+                self._list_widget.setCurrentItem(item)
 
         # Determine initial new ID
         next_id = max(existing_ids, default=-1) + 1
@@ -52,7 +52,9 @@ class ObjectIdDialog(QDialog):
         self._list_widget.addItem(self._new_id_item)
 
         if suggested_id is None or suggested_id not in existing_ids:
-            self._new_id_item.setSelected(True)
+            self._list_widget.setCurrentItem(self._new_id_item)
+
+        self._list_widget.setFocus()
 
         self._list_widget.itemDoubleClicked.connect(self._on_item_double_clicked)
 
@@ -115,3 +117,18 @@ class ObjectIdDialog(QDialog):
             return selected_items[0].data(Qt.ItemDataRole.UserRole)
             
         return None
+
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        """Handle key press events to allow navigation with arrow keys."""
+        if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
+            if not self._spin.hasFocus():
+                current_row = self._list_widget.currentRow()
+                if event.key() == Qt.Key.Key_Up:
+                    next_row = max(0, current_row - 1)
+                else:
+                    next_row = min(self._list_widget.count() - 1, current_row + 1)
+                
+                self._list_widget.setCurrentRow(next_row)
+                return
+
+        super().keyPressEvent(event)
