@@ -33,19 +33,19 @@ class ToolBar(QToolBar):
 
         self.addSeparator()
 
-        # Mode switch
-        self.addWidget(QLabel(" Mode: "))
-        self._mode_combo = QComboBox()
-        self._mode_combo.addItems(["View", "Annotation"])
-        self._mode_combo.currentTextChanged.connect(self._on_mode_changed)
-        self.addWidget(self._mode_combo)
+        # Mode toggle
+        self._mode_btn = QPushButton("Edit Mode")
+        self._mode_btn.setCheckable(True)
+        self._mode_btn.setChecked(True)
+        self._mode_btn.toggled.connect(self._on_mode_toggled)
+        self.addWidget(self._mode_btn)
 
         self.addSeparator()
 
-        # Draw button (checkable, only enabled in annotation mode)
+        # Draw button (checkable, only enabled in edit mode)
         self._draw_btn = QPushButton("Draw (A)")
         self._draw_btn.setCheckable(True)
-        self._draw_btn.setEnabled(False)
+        self._draw_btn.setEnabled(True)
         self._draw_btn.toggled.connect(self._on_draw_toggled)
         self.addWidget(self._draw_btn)
 
@@ -120,7 +120,7 @@ class ToolBar(QToolBar):
         self.auto_save_toggled.emit(checked)
 
     def current_mode(self) -> str:
-        return self._mode_combo.currentText().lower()
+        return "edit" if self._mode_btn.isChecked() else "view"
 
     def set_draw_active(self, active: bool) -> None:
         """Programmatically set draw button state without emitting signal."""
@@ -128,12 +128,18 @@ class ToolBar(QToolBar):
         self._draw_btn.setChecked(active)
         self._draw_btn.blockSignals(False)
 
-    def _on_mode_changed(self, text: str) -> None:
-        is_annotation = text.lower() == "annotation"
-        self._draw_btn.setEnabled(is_annotation)
-        if not is_annotation:
+    def _on_mode_toggled(self, checked: bool) -> None:
+        if checked:
+            self._mode_btn.setText("Edit Mode")
+            mode = "edit"
+        else:
+            self._mode_btn.setText("View Mode")
+            mode = "view"
+            
+        self._draw_btn.setEnabled(checked)
+        if not checked:
             self.set_draw_active(False)
-        self.mode_changed.emit(text.lower())
+        self.mode_changed.emit(mode)
 
     def _on_draw_toggled(self, checked: bool) -> None:
         self.draw_mode_toggled.emit(checked)

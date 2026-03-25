@@ -57,6 +57,9 @@ class MainWindow(QMainWindow):
         # --- Wire signals ---
         self._wire_signals()
         self._setup_shortcuts()
+        
+        # Sync initial mode
+        self._on_mode_changed(self._toolbar.current_mode())
 
     def _wire_signals(self) -> None:
         # Toolbar
@@ -171,9 +174,9 @@ class MainWindow(QMainWindow):
 
         # Apply current mode to new frame
         mode = self._toolbar.current_mode()
-        is_annotation = mode == "annotation"
-        self._scene.set_editable(is_annotation)
-        self._object_list.set_editing_enabled(is_annotation)
+        is_edit = mode == "edit"
+        self._scene.set_editable(is_edit)
+        self._object_list.set_editing_enabled(is_edit)
 
         # Update frame label
         sample_idx = self._nav.sample_index
@@ -186,9 +189,9 @@ class MainWindow(QMainWindow):
             )
 
     def _on_mode_changed(self, mode: str) -> None:
-        is_annotation = mode == "annotation"
-        self._annotation.set_annotation_mode(is_annotation)
-        self._object_list.set_editing_enabled(is_annotation)
+        is_edit = mode == "edit"
+        self._annotation.set_annotation_mode(is_edit)
+        self._object_list.set_editing_enabled(is_edit)
         self._canvas_view.set_draw_mode(False)
 
     def _on_save(self) -> None:
