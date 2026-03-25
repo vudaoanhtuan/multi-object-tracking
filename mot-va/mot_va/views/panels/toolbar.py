@@ -81,10 +81,11 @@ class ToolBar(QToolBar):
         self.addWidget(spacer)
 
         # Auto Save toggle (enabled by default)
-        self._auto_save_action = self.addAction("Auto Save")
-        self._auto_save_action.setCheckable(True)
-        self._auto_save_action.setChecked(True)
-        self._auto_save_action.toggled.connect(self._on_auto_save_toggled)
+        self._auto_save_btn = QPushButton("Auto Save: On")
+        self._auto_save_btn.setCheckable(True)
+        self._auto_save_btn.setChecked(True)
+        self._auto_save_btn.toggled.connect(self._on_auto_save_toggled)
+        self.addWidget(self._auto_save_btn)
 
         self.addSeparator()
 
@@ -105,18 +106,21 @@ class ToolBar(QToolBar):
 
     def set_dirty(self, dirty: bool) -> None:
         """Gray out Save/Discard when not dirty or when auto-save is on."""
-        allow = dirty and not self._auto_save_action.isChecked()
+        allow = dirty and not self._auto_save_btn.isChecked()
         self._save_btn.setEnabled(allow)
         self._discard_btn.setEnabled(allow)
 
     def is_auto_save(self) -> bool:
-        return self._auto_save_action.isChecked()
+        return self._auto_save_btn.isChecked()
 
     def _on_auto_save_toggled(self, checked: bool) -> None:
         # When auto-save is toggled on, gray out Save/Discard
         if checked:
+            self._auto_save_btn.setText("Auto Save: On")
             self._save_btn.setEnabled(False)
             self._discard_btn.setEnabled(False)
+        else:
+            self._auto_save_btn.setText("Auto Save: Off")
         self.auto_save_toggled.emit(checked)
 
     def current_mode(self) -> str:
