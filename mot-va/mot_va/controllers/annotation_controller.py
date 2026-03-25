@@ -2,6 +2,7 @@ from PyQt6.QtCore import QObject, QRectF, pyqtSignal
 
 from mot_va.models.bbox import BoundingBox
 from mot_va.models.frame import Frame
+from mot_va.models.project import Project
 from mot_va.services.file_io import write_mot_labels
 from mot_va.views.canvas.canvas_scene import CanvasScene
 from mot_va.views.dialogs.object_id_dialog import ObjectIdDialog
@@ -17,6 +18,7 @@ class AnnotationController(QObject):
     def __init__(self, scene: CanvasScene) -> None:
         super().__init__()
         self._scene = scene
+        self._project: Project | None = None
         self._current_frame: Frame | None = None
         self._annotation_mode = False
         self._auto_save = True
@@ -37,8 +39,22 @@ class AnnotationController(QObject):
         if self._auto_save:
             self.save()
 
+    def set_project(self, project: Project) -> None:
+        """Set the current project for cross-frame ID tracking."""
+        self._project = project
+
     def set_frame(self, frame: Frame) -> None:
         self._current_frame = frame
+
+    def _all_existing_ids(self) -> list[int]:
+        """Collect object IDs from all loaded frames across the project."""
+        ids: set[int] = set()
+        if self._project:
+            for sample in self._project.samples:
+                for frame in sample.frames:
+                    if frame.labels_loaded:
+                        ids.update(b.object_id for b in frame.bboxes)
+        return list(ids)
 
     def set_annotation_mode(self, enabled: bool) -> None:
         self._annotation_mode = enabled
@@ -72,8 +88,8 @@ class AnnotationController(QObject):
         self._scene.set_draw_mode(False)
         self.draw_mode_changed.emit(False)
 
-        # Collect existing IDs
-        existing_ids = list({b.object_id for b in self._current_frame.bboxes})
+        # Collect existing IDs across all frames
+        existing_ids = self._all_existing_ids()
 
         dialog = ObjectIdDialog(existing_ids)
         dialog.exec()
@@ -118,7 +134,7 @@ class AnnotationController(QObject):
         if index < 0 or index >= len(self._current_frame.bboxes):
             return
 
-        existing_ids = list({b.object_id for b in self._current_frame.bboxes})
+        existing_ids = self._all_existing_ids()
         dialog = ObjectIdDialog(existing_ids)
         dialog.exec()
         new_id = dialog.selected_id()

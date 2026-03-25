@@ -144,6 +144,7 @@ class MainWindow(QMainWindow):
 
     def _on_project_loaded(self, project: Project) -> None:
         self._sample_browser.set_project(project)
+        self._annotation.set_project(project)
         self.setWindowTitle(
             f"MOT Visualization & Annotation - {project.root_dir.name}"
         )
