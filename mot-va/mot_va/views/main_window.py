@@ -178,6 +178,7 @@ class MainWindow(QMainWindow):
         )
 
     def _on_frame_changed(self, frame: Frame, pixmap: QPixmap) -> None:
+        self._toolbar.set_has_frame(True)
         sample_idx = self._nav.sample_index
         frame_idx = self._nav.frame_index
 

@@ -25,6 +25,7 @@ class ToolBar(QToolBar):
     def __init__(self) -> None:
         super().__init__("Main Toolbar")
         self.setMovable(False)
+        self._has_frame = False
 
         # Open button
         self._open_btn = QPushButton("Open...")
@@ -48,7 +49,7 @@ class ToolBar(QToolBar):
         self._draw_btn = QPushButton("Add")
         self._draw_btn.setToolTip("Enter Add Mode (A)")
         self._draw_btn.setCheckable(True)
-        self._draw_btn.setEnabled(True)
+        self._draw_btn.setEnabled(False)
         self._draw_btn.toggled.connect(self._on_draw_toggled)
         self.addWidget(self._draw_btn)
 
@@ -138,6 +139,13 @@ class ToolBar(QToolBar):
         self._draw_btn.setChecked(active)
         self._draw_btn.blockSignals(False)
 
+    def _update_draw_btn_state(self) -> None:
+        self._draw_btn.setEnabled(self._mode_btn.isChecked() and self._has_frame)
+
+    def set_has_frame(self, has_frame: bool) -> None:
+        self._has_frame = has_frame
+        self._update_draw_btn_state()
+
     def _on_mode_toggled(self, checked: bool) -> None:
         if checked:
             self._mode_btn.setText("Edit Mode")
@@ -146,7 +154,7 @@ class ToolBar(QToolBar):
             self._mode_btn.setText("View Mode")
             mode = "view"
             
-        self._draw_btn.setEnabled(checked)
+        self._update_draw_btn_state()
         if not checked:
             self.set_draw_active(False)
         self.mode_changed.emit(mode)
