@@ -19,6 +19,7 @@ class CanvasScene(QGraphicsScene):
     bbox_drawn = pyqtSignal(QRectF)
     bbox_selected_signal = pyqtSignal(int)  # index of selected bbox
     bbox_double_clicked = pyqtSignal(int)  # index of double-clicked bbox
+    bbox_moved_signal = pyqtSignal()  # emitted when a bbox is moved
 
     def __init__(self) -> None:
         super().__init__()
@@ -45,6 +46,7 @@ class CanvasScene(QGraphicsScene):
         for i, bbox in enumerate(frame.bboxes):
             color = color_registry.get_color(bbox.object_id)
             item = BBoxItem(bbox, color, i)
+            item.on_moved_callback = self._on_bbox_moved
             self.addItem(item)
             self._bbox_items.append(item)
 
@@ -62,6 +64,7 @@ class CanvasScene(QGraphicsScene):
         index = len(self._bbox_items)
         color = color_registry.get_color(bbox.object_id)
         item = BBoxItem(bbox, color, index)
+        item.on_moved_callback = self._on_bbox_moved
         self.addItem(item)
         self._bbox_items.append(item)
         return item
@@ -133,3 +136,7 @@ class CanvasScene(QGraphicsScene):
             self.bbox_double_clicked.emit(item.index)
             return
         super().mouseDoubleClickEvent(event)
+
+    def _on_bbox_moved(self, index: int) -> None:
+        """Called when a bbox finished moving."""
+        self.bbox_moved_signal.emit()

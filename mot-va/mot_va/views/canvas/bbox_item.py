@@ -1,6 +1,11 @@
 from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QBrush, QColor, QFont, QPainter, QPen
-from PyQt6.QtWidgets import QGraphicsRectItem, QStyleOptionGraphicsItem, QWidget
+from PyQt6.QtWidgets import (
+    QGraphicsRectItem,
+    QGraphicsSceneMouseEvent,
+    QStyleOptionGraphicsItem,
+    QWidget,
+)
 
 from mot_va.models.bbox import BoundingBox
 
@@ -23,6 +28,7 @@ class BBoxItem(QGraphicsRectItem):
 
         self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsSelectable, False)
         self.setFlag(QGraphicsRectItem.GraphicsItemFlag.ItemIsMovable, False)
+        self.on_moved_callback = None
 
         # Fill with semi-transparent color
         fill = QColor(color)
@@ -93,3 +99,14 @@ class BBoxItem(QGraphicsRectItem):
         self.bbox.y_min = int(rect.y() + pos.y())
         self.bbox.x_max = self.bbox.x_min + int(rect.width())
         self.bbox.y_max = self.bbox.y_min + int(rect.height())
+
+    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        self._start_pos = self.pos()
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        super().mouseReleaseEvent(event)
+        if hasattr(self, "_start_pos") and self.pos() != self._start_pos:
+            if getattr(self, "on_moved_callback", None):
+                self.on_moved_callback(self.index)
+

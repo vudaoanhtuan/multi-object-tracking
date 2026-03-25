@@ -27,6 +27,7 @@ class AnnotationController(QObject):
 
         self._scene.bbox_drawn.connect(self._on_bbox_drawn)
         self._scene.bbox_double_clicked.connect(self.change_object_id)
+        self._scene.bbox_moved_signal.connect(self.on_bbox_moved)
 
     def set_auto_save(self, enabled: bool) -> None:
         """Enable or disable auto-save mode."""
