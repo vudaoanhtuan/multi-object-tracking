@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Callable
 
 from PyQt6.QtCore import QObject, pyqtSignal
 from PyQt6.QtGui import QPixmap
@@ -16,6 +17,7 @@ class NavigationController(QObject):
     frame_changed = pyqtSignal(Frame, QPixmap)
     project_loaded = pyqtSignal(Project)
     dirty_changed = pyqtSignal(bool)
+    navigation_cancelled = pyqtSignal(int, int)  # sample_index, frame_index to revert to
 
     def __init__(self) -> None:
         super().__init__()
@@ -23,6 +25,11 @@ class NavigationController(QObject):
         self._sample_index = -1
         self._frame_index = -1
         self._dirty = False
+        self._discard_callback: Callable[[], None] | None = None
+
+    def set_discard_callback(self, callback: Callable[[], None]) -> None:
+        """Set callback to invoke when user chooses Discard."""
+        self._discard_callback = callback
 
     @property
     def project(self) -> Project | None:
@@ -68,8 +75,15 @@ class NavigationController(QObject):
             return
 
         # Check dirty state before switching
-        if self._dirty and not self._confirm_discard():
-            return
+        if self._dirty:
+            result = self._confirm_discard()
+            if result == "cancel" or result == "save":
+                # Revert the frame panel selection to current frame
+                self.navigation_cancelled.emit(self._sample_index, self._frame_index)
+                return
+            # result == "discard": reload labels from disk before navigating
+            if self._discard_callback:
+                self._discard_callback()
 
         self._sample_index = sample_index
         self._frame_index = frame_index
@@ -93,7 +107,11 @@ class NavigationController(QObject):
         sample = self._project.samples[self._sample_index]
         if self._frame_index < len(sample.frames) - 1:
             new_idx = self._frame_index + 1
+            old_idx = self._frame_index
             self.on_frame_selected(self._sample_index, new_idx)
+            # Return None if navigation was cancelled
+            if self._frame_index == old_idx:
+                return None
             return new_idx
         return None
 
@@ -103,12 +121,19 @@ class NavigationController(QObject):
             return None
         if self._frame_index > 0:
             new_idx = self._frame_index - 1
+            old_idx = self._frame_index
             self.on_frame_selected(self._sample_index, new_idx)
+            # Return None if navigation was cancelled
+            if self._frame_index == old_idx:
+                return None
             return new_idx
         return None
 
-    def _confirm_discard(self) -> bool:
-        """Ask user whether to discard unsaved changes."""
+    def _confirm_discard(self) -> str:
+        """Ask user whether to save, discard, or cancel.
+
+        Returns: "save", "discard", or "cancel".
+        """
         result = QMessageBox.question(
             None,  # type: ignore[arg-type]
             "Unsaved Changes",
@@ -119,6 +144,7 @@ class NavigationController(QObject):
             QMessageBox.StandardButton.Cancel,
         )
         if result == QMessageBox.StandardButton.Save:
-            # Caller should save first — we emit a signal
-            return False  # Don't navigate yet
-        return result == QMessageBox.StandardButton.Discard
+            return "save"
+        if result == QMessageBox.StandardButton.Discard:
+            return "discard"
+        return "cancel"

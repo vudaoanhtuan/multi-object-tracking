@@ -18,6 +18,7 @@ class CanvasScene(QGraphicsScene):
 
     bbox_drawn = pyqtSignal(QRectF)
     bbox_selected_signal = pyqtSignal(int)  # index of selected bbox
+    bbox_double_clicked = pyqtSignal(int)  # index of double-clicked bbox
 
     def __init__(self) -> None:
         super().__init__()
@@ -125,3 +126,10 @@ class CanvasScene(QGraphicsScene):
                 self.bbox_drawn.emit(rect)
             return
         super().mouseReleaseEvent(event)
+
+    def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        item = self.itemAt(event.scenePos(), self.views()[0].transform())
+        if isinstance(item, BBoxItem):
+            self.bbox_double_clicked.emit(item.index)
+            return
+        super().mouseDoubleClickEvent(event)

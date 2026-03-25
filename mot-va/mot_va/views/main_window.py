@@ -71,6 +71,10 @@ class MainWindow(QMainWindow):
         self._nav.project_loaded.connect(self._on_project_loaded)
         self._nav.frame_changed.connect(self._on_frame_changed)
         self._nav.dirty_changed.connect(self._toolbar.set_dirty)
+        self._nav.navigation_cancelled.connect(
+            lambda _si, fi: self._sample_browser.select_frame(fi)
+        )
+        self._nav.set_discard_callback(self._annotation.discard)
 
         # Sample browser
         self._sample_browser.frame_selected.connect(self._nav.on_frame_selected)

@@ -21,6 +21,7 @@ class AnnotationController(QObject):
         self._annotation_mode = False
 
         self._scene.bbox_drawn.connect(self._on_bbox_drawn)
+        self._scene.bbox_double_clicked.connect(self.change_object_id)
 
     def set_frame(self, frame: Frame) -> None:
         self._current_frame = frame
