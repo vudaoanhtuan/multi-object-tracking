@@ -71,7 +71,7 @@ class BBoxItem(QGraphicsRectItem):
 
         # Draw ID label above top-left corner
         label = str(self.bbox.object_id)
-        font = QFont("Sans", 10)
+        font = QFont("Sans", 15)
         font.setBold(True)
         painter.setFont(font)
 
