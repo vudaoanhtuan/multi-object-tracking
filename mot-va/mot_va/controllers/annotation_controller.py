@@ -19,9 +19,23 @@ class AnnotationController(QObject):
         self._scene = scene
         self._current_frame: Frame | None = None
         self._annotation_mode = False
+        self._auto_save = True
 
         self._scene.bbox_drawn.connect(self._on_bbox_drawn)
         self._scene.bbox_double_clicked.connect(self.change_object_id)
+
+    def set_auto_save(self, enabled: bool) -> None:
+        """Enable or disable auto-save mode."""
+        self._auto_save = enabled
+
+    @property
+    def auto_save(self) -> bool:
+        return self._auto_save
+
+    def _auto_save_if_needed(self) -> None:
+        """Automatically save if auto-save is enabled."""
+        if self._auto_save:
+            self.save()
 
     def set_frame(self, frame: Frame) -> None:
         self._current_frame = frame
@@ -80,6 +94,7 @@ class AnnotationController(QObject):
         item.set_editable(True)
         self.dirty_changed.emit(True)
         self.bboxes_updated.emit()
+        self._auto_save_if_needed()
 
     def delete_selected(self) -> None:
         """Delete the currently selected bbox."""
@@ -94,6 +109,7 @@ class AnnotationController(QObject):
         self._scene.remove_bbox_item(index)
         self.dirty_changed.emit(True)
         self.bboxes_updated.emit()
+        self._auto_save_if_needed()
 
     def change_object_id(self, index: int) -> None:
         """Change the object ID of a bbox at the given index."""
@@ -115,6 +131,7 @@ class AnnotationController(QObject):
         self._refresh_scene()
         self.dirty_changed.emit(True)
         self.bboxes_updated.emit()
+        self._auto_save_if_needed()
 
     def save(self) -> bool:
         """Save current frame labels to disk. Returns True if saved."""
@@ -145,6 +162,7 @@ class AnnotationController(QObject):
     def on_bbox_moved(self) -> None:
         """Called when a bbox item has been moved on the canvas."""
         self.dirty_changed.emit(True)
+        self._auto_save_if_needed()
 
     def _refresh_scene(self) -> None:
         """Rebuild bbox items from the current frame model."""

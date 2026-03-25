@@ -75,6 +75,11 @@ class MainWindow(QMainWindow):
             lambda _si, fi: self._sample_browser.select_frame(fi)
         )
         self._nav.set_discard_callback(self._annotation.discard)
+        self._nav.set_save_callback(lambda: self._annotation.save())
+
+        # Auto-save wiring
+        self._toolbar.auto_save_toggled.connect(self._annotation.set_auto_save)
+        self._toolbar.auto_save_toggled.connect(self._nav.set_auto_save)
 
         # Sample browser
         self._sample_browser.frame_selected.connect(self._nav.on_frame_selected)

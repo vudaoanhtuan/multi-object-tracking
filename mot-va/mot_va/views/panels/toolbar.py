@@ -18,6 +18,7 @@ class ToolBar(QToolBar):
     prev_frame = pyqtSignal()
     next_frame = pyqtSignal()
     draw_mode_toggled = pyqtSignal(bool)
+    auto_save_toggled = pyqtSignal(bool)
 
     def __init__(self) -> None:
         super().__init__("Main Toolbar")
@@ -66,6 +67,14 @@ class ToolBar(QToolBar):
         spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.addWidget(spacer)
 
+        # Auto Save toggle (enabled by default)
+        self._auto_save_action = self.addAction("Auto Save")
+        self._auto_save_action.setCheckable(True)
+        self._auto_save_action.setChecked(True)
+        self._auto_save_action.toggled.connect(self._on_auto_save_toggled)
+
+        self.addSeparator()
+
         # Discard button
         self._discard_btn = QPushButton("Discard")
         self._discard_btn.setEnabled(False)
@@ -82,9 +91,20 @@ class ToolBar(QToolBar):
         self._frame_label.setText(f" {text} ")
 
     def set_dirty(self, dirty: bool) -> None:
-        """Gray out Save/Discard when not dirty, enable when dirty."""
-        self._save_btn.setEnabled(dirty)
-        self._discard_btn.setEnabled(dirty)
+        """Gray out Save/Discard when not dirty or when auto-save is on."""
+        allow = dirty and not self._auto_save_action.isChecked()
+        self._save_btn.setEnabled(allow)
+        self._discard_btn.setEnabled(allow)
+
+    def is_auto_save(self) -> bool:
+        return self._auto_save_action.isChecked()
+
+    def _on_auto_save_toggled(self, checked: bool) -> None:
+        # When auto-save is toggled on, gray out Save/Discard
+        if checked:
+            self._save_btn.setEnabled(False)
+            self._discard_btn.setEnabled(False)
+        self.auto_save_toggled.emit(checked)
 
     def current_mode(self) -> str:
         return self._mode_combo.currentText().lower()

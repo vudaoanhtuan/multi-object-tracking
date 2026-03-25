@@ -25,11 +25,21 @@ class NavigationController(QObject):
         self._sample_index = -1
         self._frame_index = -1
         self._dirty = False
+        self._auto_save = True
         self._discard_callback: Callable[[], None] | None = None
+        self._save_callback: Callable[[], None] | None = None
 
     def set_discard_callback(self, callback: Callable[[], None]) -> None:
         """Set callback to invoke when user chooses Discard."""
         self._discard_callback = callback
+
+    def set_save_callback(self, callback: Callable[[], None]) -> None:
+        """Set callback to invoke for auto-save before navigation."""
+        self._save_callback = callback
+
+    def set_auto_save(self, enabled: bool) -> None:
+        """Enable or disable auto-save for navigation."""
+        self._auto_save = enabled
 
     @property
     def project(self) -> Project | None:
@@ -76,14 +86,19 @@ class NavigationController(QObject):
 
         # Check dirty state before switching
         if self._dirty:
-            result = self._confirm_discard()
-            if result == "cancel" or result == "save":
-                # Revert the frame panel selection to current frame
-                self.navigation_cancelled.emit(self._sample_index, self._frame_index)
-                return
-            # result == "discard": reload labels from disk before navigating
-            if self._discard_callback:
-                self._discard_callback()
+            if self._auto_save:
+                # Auto-save silently before navigating
+                if self._save_callback:
+                    self._save_callback()
+            else:
+                result = self._confirm_discard()
+                if result == "cancel" or result == "save":
+                    # Revert the frame panel selection to current frame
+                    self.navigation_cancelled.emit(self._sample_index, self._frame_index)
+                    return
+                # result == "discard": reload labels from disk before navigating
+                if self._discard_callback:
+                    self._discard_callback()
 
         self._sample_index = sample_index
         self._frame_index = frame_index
