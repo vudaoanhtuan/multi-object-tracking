@@ -108,9 +108,25 @@ class MainWindow(QMainWindow):
         self._object_list.change_id_requested.connect(self._annotation.change_object_id)
 
     def _setup_shortcuts(self) -> None:
+        # Ctrl+O: Open
+        QShortcut(QKeySequence.StandardKey.Open, self).activated.connect(
+            self._on_open
+        )
         # Ctrl+S: Save
         QShortcut(QKeySequence.StandardKey.Save, self).activated.connect(
             self._on_save
+        )
+        # Ctrl+D: Discard
+        QShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Key.Key_D), self).activated.connect(
+            self._on_discard
+        )
+        # M: Toggle Mode
+        QShortcut(QKeySequence(Qt.Key.Key_M), self).activated.connect(
+            self._toolbar._mode_btn.toggle
+        )
+        # T: Toggle Auto Save
+        QShortcut(QKeySequence(Qt.Key.Key_T), self).activated.connect(
+            self._toolbar._auto_save_btn.toggle
         )
         # Zoom Out/In (Ctrl+- / Ctrl++)
         QShortcut(QKeySequence.StandardKey.ZoomIn, self).activated.connect(

@@ -28,6 +28,7 @@ class ToolBar(QToolBar):
 
         # Open button
         self._open_btn = QPushButton("Open...")
+        self._open_btn.setToolTip("Open Dataset (Ctrl+O)")
         self._open_btn.clicked.connect(self.open_requested)
         self.addWidget(self._open_btn)
 
@@ -35,6 +36,7 @@ class ToolBar(QToolBar):
 
         # Mode toggle
         self._mode_btn = QPushButton("Edit Mode")
+        self._mode_btn.setToolTip("Toggle Edit/View Mode (M)")
         self._mode_btn.setCheckable(True)
         self._mode_btn.setChecked(True)
         self._mode_btn.toggled.connect(self._on_mode_toggled)
@@ -43,7 +45,8 @@ class ToolBar(QToolBar):
         self.addSeparator()
 
         # Draw button (checkable, only enabled in edit mode)
-        self._draw_btn = QPushButton("Draw (A)")
+        self._draw_btn = QPushButton("Add")
+        self._draw_btn.setToolTip("Enter Add Mode (A)")
         self._draw_btn.setCheckable(True)
         self._draw_btn.setEnabled(True)
         self._draw_btn.toggled.connect(self._on_draw_toggled)
@@ -82,6 +85,7 @@ class ToolBar(QToolBar):
 
         # Auto Save toggle (enabled by default)
         self._auto_save_btn = QPushButton("Auto Save: On")
+        self._auto_save_btn.setToolTip("Toggle Auto Save (T)")
         self._auto_save_btn.setCheckable(True)
         self._auto_save_btn.setChecked(True)
         self._auto_save_btn.toggled.connect(self._on_auto_save_toggled)
@@ -91,12 +95,14 @@ class ToolBar(QToolBar):
 
         # Discard button
         self._discard_btn = QPushButton("Discard")
+        self._discard_btn.setToolTip("Discard Changes (Ctrl+D)")
         self._discard_btn.setEnabled(False)
         self._discard_btn.clicked.connect(self.discard_requested)
         self.addWidget(self._discard_btn)
 
         # Save button
         self._save_btn = QPushButton("Save")
+        self._save_btn.setToolTip("Save Changes (Ctrl+S)")
         self._save_btn.setEnabled(False)
         self._save_btn.clicked.connect(self.save_requested)
         self.addWidget(self._save_btn)

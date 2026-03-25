@@ -42,7 +42,7 @@ The main window is divided into several panels:
 - In **Edit Mode**, you can draw new bounding boxes, resize them, delete them, and change object IDs.
 
 ### 3. Drawing and Managing Bounding Boxes
-- **Draw Mode:** Click the **Draw (A)** button on the toolbar or press `A` on your keyboard to enter draw mode. Your cursor will turn into a crosshair. Click and drag on the canvas to draw a new bounding box. Press `Escape` to exit draw mode and return to standard interaction.
+- **Add Mode:** Click the **Add** button on the toolbar or press `A` on your keyboard to enter add mode. Your cursor will turn into a crosshair. Click and drag on the canvas to draw a new bounding box. Press `Escape` to exit add mode and return to standard interaction.
 - **Select:** Click any bounding box on the canvas to select it. The corresponding ID will also be highlighted in the Object List panel.
 - **Resize/Move:** Click and drag the edges/corners or the body of an existing bounding box to adjust its size and position.
 - **Change ID:** Double-click on a bounding box on the canvas, or select it and click **Change ID** in the Object List panel, to assign a new or existing Object ID.
@@ -60,13 +60,17 @@ The main window is divided into several panels:
 
 | Action | Shortcut (Windows/Linux) | Shortcut (macOS) |
 | --- | --- | --- |
+| **Open Dataset** | `Ctrl + O` | `Cmd + O` |
 | **Save Changes** | `Ctrl + S` | `Cmd + S` |
+| **Discard Changes** | `Ctrl + D` | `Cmd + D` |
+| **Toggle Edit Mode** | `M` | `M` |
+| **Toggle Auto Save** | `T` | `T` |
 | **Zoom In** | `Ctrl + +` | `Cmd + +` |
 | **Zoom Out** | `Ctrl + -` | `Cmd + -` |
 | **Previous Frame** | `Left Arrow` | `Left Arrow` |
 | **Next Frame** | `Right Arrow` | `Right Arrow` |
-| **Enter Draw Mode** | `A` | `A` |
-| **Exit Draw Mode** | `Escape` | `Escape` |
+| **Enter Add Mode** | `A` | `A` |
+| **Exit Add Mode** | `Escape` | `Escape` |
 | **Delete Selected Box** | `Delete` | `Delete` / `Backspace` |
 
 ---
