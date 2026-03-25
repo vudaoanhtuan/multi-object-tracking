@@ -66,6 +66,8 @@ class MainWindow(QMainWindow):
         self._toolbar.mode_changed.connect(self._on_mode_changed)
         self._toolbar.prev_frame.connect(self._on_prev_frame)
         self._toolbar.next_frame.connect(self._on_next_frame)
+        self._toolbar.zoom_in_requested.connect(self._canvas_view.zoom_in)
+        self._toolbar.zoom_out_requested.connect(self._canvas_view.zoom_out)
 
         # Navigation
         self._nav.project_loaded.connect(self._on_project_loaded)
@@ -106,6 +108,13 @@ class MainWindow(QMainWindow):
         # Ctrl+S: Save
         QShortcut(QKeySequence.StandardKey.Save, self).activated.connect(
             self._on_save
+        )
+        # Zoom Out/In (Ctrl+- / Ctrl++)
+        QShortcut(QKeySequence.StandardKey.ZoomIn, self).activated.connect(
+            self._canvas_view.zoom_in
+        )
+        QShortcut(QKeySequence.StandardKey.ZoomOut, self).activated.connect(
+            self._canvas_view.zoom_out
         )
         # Left arrow: previous frame
         QShortcut(QKeySequence(Qt.Key.Key_Left), self).activated.connect(

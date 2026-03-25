@@ -19,6 +19,8 @@ class ToolBar(QToolBar):
     next_frame = pyqtSignal()
     draw_mode_toggled = pyqtSignal(bool)
     auto_save_toggled = pyqtSignal(bool)
+    zoom_in_requested = pyqtSignal()
+    zoom_out_requested = pyqtSignal()
 
     def __init__(self) -> None:
         super().__init__("Main Toolbar")
@@ -46,6 +48,17 @@ class ToolBar(QToolBar):
         self._draw_btn.setEnabled(False)
         self._draw_btn.toggled.connect(self._on_draw_toggled)
         self.addWidget(self._draw_btn)
+
+        self.addSeparator()
+
+        # Zoom controls
+        self._zoom_in_btn = QPushButton("Zoom In")
+        self._zoom_in_btn.clicked.connect(self.zoom_in_requested)
+        self.addWidget(self._zoom_in_btn)
+
+        self._zoom_out_btn = QPushButton("Zoom Out")
+        self._zoom_out_btn.clicked.connect(self.zoom_out_requested)
+        self.addWidget(self._zoom_out_btn)
 
         self.addSeparator()
 

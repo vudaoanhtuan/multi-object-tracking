@@ -40,20 +40,28 @@ class CanvasView(QGraphicsView):
             # Calculate actual zoom level after fitInView
             self._zoom_level = self.transform().m11()
 
+    def zoom_by(self, factor: float) -> None:
+        """Apply zoom by a given factor, respecting min/max constraints."""
+        new_zoom = self._zoom_level * factor
+        if _MIN_ZOOM <= new_zoom <= _MAX_ZOOM:
+            self._zoom_level = new_zoom
+            self.scale(factor, factor)
+
+    def zoom_in(self) -> None:
+        """Increase the zoom level of the canvas."""
+        self.zoom_by(_ZOOM_FACTOR)
+
+    def zoom_out(self) -> None:
+        """Decrease the zoom level of the canvas."""
+        self.zoom_by(1.0 / _ZOOM_FACTOR)
+
     def wheelEvent(self, event) -> None:  # type: ignore[override]
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             angle = event.angleDelta().y()
             if angle > 0:
-                factor = _ZOOM_FACTOR
+                self.zoom_in()
             elif angle < 0:
-                factor = 1.0 / _ZOOM_FACTOR
-            else:
-                return
-
-            new_zoom = self._zoom_level * factor
-            if _MIN_ZOOM <= new_zoom <= _MAX_ZOOM:
-                self._zoom_level = new_zoom
-                self.scale(factor, factor)
+                self.zoom_out()
         else:
             super().wheelEvent(event)
 
