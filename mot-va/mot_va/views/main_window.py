@@ -150,8 +150,11 @@ class MainWindow(QMainWindow):
         )
 
     def _on_frame_changed(self, frame: Frame, pixmap: QPixmap) -> None:
+        sample_idx = self._nav.sample_index
+        frame_idx = self._nav.frame_index
+
         self._scene.set_frame(frame, pixmap)
-        self._annotation.set_frame(frame)
+        self._annotation.set_frame(frame, sample_idx, frame_idx)
         self._object_list.set_bboxes(frame.bboxes)
 
         # Fit image to canvas

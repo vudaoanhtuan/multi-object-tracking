@@ -15,6 +15,7 @@ class ObjectIdDialog(QDialog):
         self,
         existing_ids: list[int],
         parent=None,  # type: ignore[no-untyped-def]
+        suggested_id: int | None = None,
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("Assign Object ID")
@@ -36,8 +37,16 @@ class ObjectIdDialog(QDialog):
         self._spin = QSpinBox()
         self._spin.setMinimum(0)
         self._spin.setMaximum(9999)
-        next_id = max(existing_ids, default=-1) + 1
-        self._spin.setValue(next_id)
+        if suggested_id is not None and suggested_id in existing_ids:
+            self._mode_combo.setCurrentIndex(
+                self._mode_combo.findData(suggested_id)
+            )
+            # Default fallback for spin box if user switches to "New ID"
+            self._spin.setValue(max(existing_ids, default=-1) + 1)
+        else:
+            next_id = max(existing_ids, default=-1) + 1
+            self._spin.setValue(next_id)
+            self._mode_combo.setCurrentIndex(0)  # "New ID" is index 0
         layout.addWidget(self._spin)
 
         # Buttons

@@ -20,6 +20,8 @@ class AnnotationController(QObject):
         self._scene = scene
         self._project: Project | None = None
         self._current_frame: Frame | None = None
+        self._sample_index = -1
+        self._frame_index = -1
         self._annotation_mode = False
         self._auto_save = True
 
@@ -43,8 +45,10 @@ class AnnotationController(QObject):
         """Set the current project for cross-frame ID tracking."""
         self._project = project
 
-    def set_frame(self, frame: Frame) -> None:
+    def set_frame(self, frame: Frame, sample_index: int = -1, frame_index: int = -1) -> None:
         self._current_frame = frame
+        self._sample_index = sample_index
+        self._frame_index = frame_index
 
     def _all_existing_ids(self) -> list[int]:
         """Collect object IDs from all loaded frames across the project."""
@@ -88,23 +92,49 @@ class AnnotationController(QObject):
         self._scene.set_draw_mode(False)
         self.draw_mode_changed.emit(False)
 
-        # Collect existing IDs across all frames
-        existing_ids = self._all_existing_ids()
-
-        dialog = ObjectIdDialog(existing_ids)
-        dialog.exec()
-        obj_id = dialog.selected_id()
-
-        if obj_id is None:
-            return  # Cancelled
-
+        # Create the bbox instance first without an ID to calculate IoU
         bbox = BoundingBox(
-            object_id=obj_id,
+            object_id=-1,  # Temporary
             x_min=int(rect.x()),
             y_min=int(rect.y()),
             x_max=int(rect.x() + rect.width()),
             y_max=int(rect.y() + rect.height()),
         )
+
+        # Smart ID Assignment via IoU with previous frame
+        best_match_id: int | None = None
+        max_iou = 0.0
+
+        if self._project and self._sample_index >= 0 and self._frame_index > 0:
+            prev_frame = self._project.samples[self._sample_index].frames[self._frame_index - 1]
+            if prev_frame.labels_loaded:
+                for prev_bbox in prev_frame.bboxes:
+                    iou = bbox.iou(prev_bbox)
+                    if iou > max_iou:
+                        max_iou = iou
+                        best_match_id = prev_bbox.object_id
+
+        # Collect existing IDs across all frames
+        existing_ids = self._all_existing_ids()
+        
+        # Determine actual object ID
+        if max_iou >= 0.50 and best_match_id is not None:
+            # Auto-assign if IoU >= 50%
+            obj_id = best_match_id
+        else:
+            # Show dialog
+            suggested_id = best_match_id if max_iou >= 0.25 else None
+            dialog = ObjectIdDialog(existing_ids, suggested_id=suggested_id)
+            dialog.exec()
+            dialog_id = dialog.selected_id()
+            
+            if dialog_id is None:
+                return  # Cancelled
+            obj_id = dialog_id
+
+        # Assign the final ID
+        bbox.object_id = obj_id
+
         self._current_frame.bboxes.append(bbox)
         item = self._scene.add_bbox_item(bbox)
         item.set_editable(True)
